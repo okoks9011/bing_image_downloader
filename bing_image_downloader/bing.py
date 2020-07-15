@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import sys
 import urllib.request
+import urllib.parse
 import urllib
 import imghdr
 import posixpath
@@ -19,8 +20,14 @@ class Bing():
         self.download_count = 0
         self.headers = {'User-Agent': 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'}
 
+    def handle_non_ascii_url(self, url):
+        u = urllib.parse.urlparse(url)
+        new_url = u._replace(path=urllib.parse.quote(u.path, safe='/%')).geturl()
+        print(f'[%] Non ascii replace {new_url}')
+        return new_url
+
     def save_image(self, link, file_path):
-        request = urllib.request.Request(link, None, self.headers)
+        request = urllib.request.Request(self.handle_non_ascii_url(link), None, self.headers)
         image = urllib.request.urlopen(request).read()
         if not imghdr.what(None, image):
             print('[Error]Invalid image, not saving {}\n'.format(link))
